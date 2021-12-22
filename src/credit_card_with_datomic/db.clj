@@ -3,7 +3,6 @@
   (:require [datomic.api :as d]
             [credit-card-with-datomic.model :as model]
             [schema.core :as s]
-    ;[clojure.walk :as walk]
             ))
 
 (def db-uri "datomic:dev://localhost:4334/credit-card")
@@ -84,9 +83,9 @@
 
 (defn generate-adds-purchase [purchases card]
   (reduce (fn [db-adds purchase] (conj db-adds [:db/add
-                                            [:purchase/id (:purchase/id purchase)]
+                                            [:card/id (:card/id card)]
                                             :card/purchase
-                                            [:card/id (:card/id card)]]))
+                                            [:purchase/id (:purchase/id purchase)]]))
           []
           purchases))
 
@@ -94,3 +93,10 @@
   (let [a-transacionar (generate-adds-purchase purchase card)]
     (d/transact conn a-transacionar)))
 
+(defn purchase-by-card [db]
+  (d/q '[:find ?number (count ?price) (sum ?price)
+         :keys card purchase-total sum-total
+         :with ?card
+         :where [?card :card/number ?number]
+         [?card :card/purchase ?purchase]
+         [?purchase :purchase/price ?price]] db))

@@ -12,14 +12,20 @@
 (def conn (db/connect!))
 (db/create-schema! conn)
 
-(def cliente (model/new-client "John doe", (model/uuid)))
-(pprint @(d/transact conn [cliente]))
+(def client (model/new-client "John doe", (model/uuid)))
+(pprint @(d/transact conn [client]))
 
-(def compra1 (model/new-purchase (j/sql-date (j/local-date 2021 1 10)), 30M, "Ifood", "Food", (model/uuid)))
-(pprint @(d/transact conn [compra1]))
+(def purchase1 (model/new-purchase (j/sql-date (j/local-date 2021 1 10)), 30M, "Ifood", "Food", (model/uuid)))
+(pprint @(d/transact conn [purchase1]))
 
-(def cartao (model/new-card "1111.1111", "592", 50M, (j/sql-date (j/local-date 2021 9 28)), cliente, compra1, (model/uuid)))
-(pprint @(d/transact conn [cartao]))
+(def purchase2 (model/new-purchase (j/sql-date (j/local-date 2021 1 10)), 20M, "Ifood", "Food", (model/uuid)))
+(pprint @(d/transact conn [purchase2]))
 
+(def card (model/new-card "1111.1111", "592", 50M, (j/sql-date (j/local-date 2021 9 28)), client, (model/uuid)))
+(pprint @(d/transact conn [card]))
+
+(db/add-purchases! conn [purchase1, purchase2] card)
 
 (pprint (db/all-cards (d/db conn)))
+
+(pprint (db/purchase-by-card (d/db conn)))
